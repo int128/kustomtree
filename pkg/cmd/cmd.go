@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/kustomize/api/types"
 )
 
 func Run(name string) error {
@@ -25,8 +26,7 @@ func Run(name string) error {
 }
 
 func processKustomizationYAML(name string) error {
-	log.Printf("processing %s", name)
-
+	log.Printf("reading %s", name)
 	f, err := os.Open(name)
 	if err != nil {
 		return fmt.Errorf("could not open the file: %w", err)
@@ -34,12 +34,21 @@ func processKustomizationYAML(name string) error {
 	defer f.Close()
 
 	d := yaml.NewDecoder(f)
-	var n struct {
-		Resources []string `yaml:"resources"`
-	}
+	var n types.Kustomization
 	if err := d.Decode(&n); err != nil {
 		return fmt.Errorf("could not decode: %w", err)
 	}
-	log.Printf("%+v", n)
+
+	for _, resourceName := range n.Resources {
+		if err := processResource(resourceName, filepath.Dir(name)); err != nil {
+			return fmt.Errorf("could not process %s: %w", name, err)
+		}
+	}
+
+	//e := yaml.NewEncoder(os.Stdout)
+	//e.SetIndent(2)
+	//if err := e.Encode(&n); err != nil {
+	//	return fmt.Errorf("could not encode: %w", err)
+	//}
 	return nil
 }
