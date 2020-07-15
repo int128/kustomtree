@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/int128/sortmanifest/pkg/cmd"
+	"github.com/int128/kustomtree/pkg/cmd"
 )
 
 func run(osArgs []string) error {

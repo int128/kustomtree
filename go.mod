@@ -1,4 +1,4 @@
-module github.com/int128/sortmanifest
+module github.com/int128/kustomtree
 
 go 1.14
 
