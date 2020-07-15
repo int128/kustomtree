@@ -11,6 +11,7 @@ import (
 
 type Manifest struct {
 	Filename  string // relative to kustomization.yaml
+	Basedir   string
 	Resources []*Resource
 }
 
@@ -65,6 +66,7 @@ func Parse(name string, basedir string) (*Manifest, error) {
 	}
 	return &Manifest{
 		Filename:  name,
+		Basedir:   basedir,
 		Resources: rs,
 	}, nil
 }

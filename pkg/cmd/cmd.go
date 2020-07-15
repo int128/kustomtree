@@ -43,7 +43,9 @@ func run(name string, o options) error {
 			if err != nil {
 				return fmt.Errorf("could not parse YAML: %w", err)
 			}
-			kustomize.Refactor(manifest, o.dryRun)
+			if err := kustomize.Refactor(manifest, o.dryRun); err != nil {
+				return fmt.Errorf("could not refactor: %w", err)
+			}
 		}
 		return nil
 	}); err != nil {
