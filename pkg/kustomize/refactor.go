@@ -2,7 +2,7 @@ package kustomize
 
 import "log"
 
-func Refactor(manifest *Manifest) {
+func Refactor(manifest *Manifest, dryRun bool) {
 	for _, resourceManifest := range manifest.ResourceManifests {
 		for _, resource := range resourceManifest.Resources {
 			desiredFilename := resource.DesiredFilename()
@@ -11,7 +11,11 @@ func Refactor(manifest *Manifest) {
 				continue
 			}
 			if resourceManifest.Filename != desiredFilename {
-				log.Printf("TODO: move resource %s -> %s", resourceManifest.Filename, desiredFilename)
+				if dryRun {
+					log.Printf("DRYRUN: move resource %s -> %s", resourceManifest.Filename, desiredFilename)
+					continue
+				}
+				//TODO: write files
 			}
 		}
 	}
@@ -24,7 +28,11 @@ func Refactor(manifest *Manifest) {
 				continue
 			}
 			if patchManifest.Filename != desiredFilename {
-				log.Printf("TODO: move patchesStrategicMerge %s -> %s", patchManifest.Filename, desiredFilename)
+				if dryRun {
+					log.Printf("DRYRUN: move patchesStrategicMerge %s -> %s", patchManifest.Filename, desiredFilename)
+					continue
+				}
+				//TODO: write files
 			}
 		}
 	}
