@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/kustomize/api/types"
 )
 
 func Refactor(manifest *Manifest, dryRun bool) error {
@@ -30,6 +31,7 @@ func Refactor(manifest *Manifest, dryRun bool) error {
 			}
 		}
 	}
+
 	for _, patchManifest := range manifest.PatchesStrategicMergeManifests {
 		for _, resource := range patchManifest.Resources {
 			desiredFilename := resource.DesiredFilename()
@@ -51,7 +53,34 @@ func Refactor(manifest *Manifest, dryRun bool) error {
 			}
 		}
 	}
-	// TODO: update kustomize.yaml
+
+	manifest.Kustomization.Resources = manifest.DesiredResources()
+	manifest.Kustomization.PatchesStrategicMerge = manifest.DesiredPatchesStrategicMerge()
+	if dryRun {
+		log.Printf("DRYRUN: update %s", manifest.Filename)
+		return nil
+	}
+	log.Printf("WRITE: update %s", manifest.Filename)
+	if err := writeKustomizationManifest(manifest.Filename, manifest.Kustomization); err != nil {
+		return fmt.Errorf("could not write to %s: %w", manifest.Filename, err)
+	}
+	return nil
+}
+
+func writeKustomizationManifest(name string, k *types.Kustomization) error {
+	f, err := os.Create(name)
+	if err != nil {
+		return fmt.Errorf("could not open file: %w", err)
+	}
+	defer f.Close()
+	e := yaml.NewEncoder(f)
+	e.SetIndent(2)
+	if err := e.Encode(k); err != nil {
+		return fmt.Errorf("could not encode: %w", err)
+	}
+	if err := e.Close(); err != nil {
+		return fmt.Errorf("close error: %w", err)
+	}
 	return nil
 }
 

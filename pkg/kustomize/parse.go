@@ -12,8 +12,38 @@ import (
 )
 
 type Manifest struct {
+	Filename                       string // full-path
+	Kustomization                  *types.Kustomization
 	ResourceManifests              []*resource.Manifest
 	PatchesStrategicMergeManifests []*resource.Manifest
+}
+
+func (m *Manifest) DesiredResources() []string {
+	var rs []string
+	for _, resourceManifest := range m.ResourceManifests {
+		for _, r := range resourceManifest.Resources {
+			desiredFilename := r.DesiredFilename()
+			if desiredFilename == "" {
+				continue
+			}
+			rs = append(rs, desiredFilename)
+		}
+	}
+	return rs
+}
+
+func (m *Manifest) DesiredPatchesStrategicMerge() []types.PatchStrategicMerge {
+	var rs []types.PatchStrategicMerge
+	for _, resourceManifest := range m.PatchesStrategicMergeManifests {
+		for _, r := range resourceManifest.Resources {
+			desiredFilename := r.DesiredFilename()
+			if desiredFilename == "" {
+				continue
+			}
+			rs = append(rs, types.PatchStrategicMerge(desiredFilename))
+		}
+	}
+	return rs
 }
 
 func Parse(name string) (*Manifest, error) {
@@ -28,10 +58,11 @@ func Parse(name string) (*Manifest, error) {
 	if err := d.Decode(&v); err != nil {
 		return nil, fmt.Errorf("could not decode: %w", err)
 	}
-	return parseNode(v, filepath.Dir(name))
+	return parseNode(v, name)
 }
 
-func parseNode(v types.Kustomization, basedir string) (*Manifest, error) {
+func parseNode(v types.Kustomization, name string) (*Manifest, error) {
+	basedir := filepath.Dir(name)
 	var rs, ps []*resource.Manifest
 	for _, resourceFilename := range v.Resources {
 		regular, err := isRegularFile(filepath.Join(basedir, resourceFilename))
@@ -65,6 +96,8 @@ func parseNode(v types.Kustomization, basedir string) (*Manifest, error) {
 	}
 
 	return &Manifest{
+		Filename:                       name,
+		Kustomization:                  &v,
 		ResourceManifests:              rs,
 		PatchesStrategicMergeManifests: ps,
 	}, nil
