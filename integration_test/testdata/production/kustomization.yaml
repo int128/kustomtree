@@ -1,0 +1,6 @@
+resources:
+- ../base
+patchesStrategicMerge:
+- memory_limit.yaml
+- replicas.yaml
+namePrefix: prod-

@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          resources:
+            limits:
+              memory: 128Mi
+            requests:
+              memory: 128Mi

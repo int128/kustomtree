@@ -1,0 +1,5 @@
+resources:
+- ../base
+patchesStrategicMerge:
+- memory_limit.yaml
+namePrefix: dev-
