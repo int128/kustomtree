@@ -9,6 +9,10 @@ import (
 	"github.com/int128/kustomtree/pkg/cmd"
 )
 
+func init() {
+	log.SetFlags(0)
+}
+
 func run(osArgs []string) error {
 	f := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	if err := f.Parse(osArgs[1:]); err != nil {
