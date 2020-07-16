@@ -26,9 +26,16 @@ type Plan struct {
 	Remove []string
 }
 
+func (p *Plan) HasChange() bool {
+	return len(p.Remove)+len(p.Create) > 0
+}
+
 func (p Plan) String() string {
+	if !p.HasChange() {
+		return "NO_CHANGE"
+	}
 	var s strings.Builder
-	_, _ = fmt.Fprintf(&s, "manifest: %s\n", p.KustomizeManifest.Path)
+	_, _ = fmt.Fprintf(&s, "manifest:\n")
 	_, _ = fmt.Fprintf(&s, "  resources: %s\n", p.Resources)
 	_, _ = fmt.Fprintf(&s, "  patchesStrategicMerge: %s\n", p.PatchesStrategicMerge)
 	_, _ = fmt.Fprintf(&s, "files:\n")
@@ -100,13 +107,6 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 }
 
 func Apply(plan Plan) error {
-	log.Printf("writing to %s", plan.KustomizeManifest.Path)
-	plan.KustomizeManifest.Kustomization.Resources = plan.Resources
-	plan.KustomizeManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge
-	if err := kustomize.Write(plan.KustomizeManifest.Path, plan.KustomizeManifest.Kustomization); err != nil {
-		return fmt.Errorf("could not update kustomization.yaml: %w", err)
-	}
-
 	for _, name := range plan.Remove {
 		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
 		log.Printf("removing %s", fullpath)
@@ -120,6 +120,15 @@ func Apply(plan Plan) error {
 		log.Printf("creating %s", fullpath)
 		if err := resource.Write(fullpath, resources); err != nil {
 			return fmt.Errorf("could not create %s: %w", fullpath, err)
+		}
+	}
+
+	if plan.HasChange() {
+		log.Printf("writing to %s", plan.KustomizeManifest.Path)
+		plan.KustomizeManifest.Kustomization.Resources = plan.Resources
+		plan.KustomizeManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge
+		if err := kustomize.Write(plan.KustomizeManifest.Path, plan.KustomizeManifest.Kustomization); err != nil {
+			return fmt.Errorf("could not update kustomization.yaml: %w", err)
 		}
 	}
 	return nil

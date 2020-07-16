@@ -43,11 +43,11 @@ func run(dirname string, o options) error {
 		if err != nil {
 			return fmt.Errorf("could not parse YAML: %w", err)
 		}
-		log.Printf("== PLAN")
+		log.Printf("== PLAN: %s", manifest.Path)
 		plan := refactor.ComputePlan(manifest)
 		log.Print(plan)
 		if !o.dryRun {
-			log.Printf("== APPLY")
+			log.Printf("== APPLY: %s", manifest.Path)
 			if err := refactor.Apply(plan); err != nil {
 				return fmt.Errorf("could not apply: %w", err)
 			}
