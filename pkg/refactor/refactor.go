@@ -107,19 +107,19 @@ func Apply(plan Plan) error {
 		return fmt.Errorf("could not update kustomization.yaml: %w", err)
 	}
 
-	for name, resources := range plan.Create {
-		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
-		log.Printf("creating %s", fullpath)
-		if err := resource.Write(fullpath, resources); err != nil {
-			return fmt.Errorf("could not create %s: %w", fullpath, err)
-		}
-	}
-
 	for _, name := range plan.Remove {
 		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
 		log.Printf("removing %s", fullpath)
 		if err := os.Remove(fullpath); err != nil {
 			return fmt.Errorf("could not remove %s: %w", fullpath, err)
+		}
+	}
+
+	for name, resources := range plan.Create {
+		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
+		log.Printf("creating %s", fullpath)
+		if err := resource.Write(fullpath, resources); err != nil {
+			return fmt.Errorf("could not create %s: %w", fullpath, err)
 		}
 	}
 	return nil
