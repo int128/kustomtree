@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/int128/kustomtree/pkg/kustomize"
+	"github.com/int128/kustomtree/pkg/refactor"
 )
 
 type options struct {
@@ -32,24 +33,41 @@ func Run(osArgs []string) error {
 	return nil
 }
 
-func run(name string, o options) error {
-	if err := filepath.Walk(name, func(path string, info os.FileInfo, err error) error {
+func run(dirname string, o options) error {
+	kustomizationYAMLs, err := find(dirname, "kustomization.yaml")
+	if err != nil {
+		return fmt.Errorf("could not find: %w", err)
+	}
+	for _, kustomizationYAML := range kustomizationYAMLs {
+		manifest, err := kustomize.Parse(kustomizationYAML)
+		if err != nil {
+			return fmt.Errorf("could not parse YAML: %w", err)
+		}
+		log.Printf("== PLAN")
+		plan := refactor.ComputePlan(manifest)
+		log.Print(plan)
+		if !o.dryRun {
+			log.Printf("== APPLY")
+			if err := refactor.Apply(plan); err != nil {
+				return fmt.Errorf("could not apply: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+func find(dirname, filename string) ([]string, error) {
+	var a []string
+	if err := filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.Name() == "kustomization.yaml" {
-			log.Printf("reading %s", path)
-			manifest, err := kustomize.Parse(path)
-			if err != nil {
-				return fmt.Errorf("could not parse YAML: %w", err)
-			}
-			if err := kustomize.Refactor(manifest, o.dryRun); err != nil {
-				return fmt.Errorf("could not refactor: %w", err)
-			}
+		if info.Name() == filename {
+			a = append(a, path)
 		}
 		return nil
 	}); err != nil {
-		return fmt.Errorf("could not find YAMLs: %w", err)
+		return nil, err
 	}
-	return nil
+	return a, nil
 }

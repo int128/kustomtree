@@ -8,3 +8,4 @@ test:
 	go run .. $(OUTPUT_DIR)/testdata/
 	kustomize build testdata > $(OUTPUT_DIR)/original.yaml
 	kustomize build $(OUTPUT_DIR)/testdata > $(OUTPUT_DIR)/kustomtree.yaml
+	diff -u $(OUTPUT_DIR)/original.yaml $(OUTPUT_DIR)/kustomtree.yaml

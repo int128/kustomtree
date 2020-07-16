@@ -1,6 +1,8 @@
 package kustomize
 
 import (
+	"path/filepath"
+
 	"github.com/int128/kustomtree/pkg/resource"
 	"sigs.k8s.io/kustomize/api/types"
 )
@@ -22,40 +24,6 @@ type Manifest struct {
 	PatchesStrategicMerge []PatchStrategicMergeRef
 }
 
-func (m *Manifest) DesiredResources() []string {
-	var a []string
-	for _, ref := range m.Resources {
-		if ref.ResourceSet == nil {
-			a = append(a, ref.Path)
-			continue
-		}
-		for _, r := range ref.ResourceSet.Resources {
-			desiredFilename := r.DesiredPath()
-			if desiredFilename == "" {
-				a = append(a, ref.Path)
-				continue
-			}
-			a = append(a, desiredFilename)
-		}
-	}
-	return a
-}
-
-func (m *Manifest) DesiredPatchesStrategicMerge() []types.PatchStrategicMerge {
-	var a []types.PatchStrategicMerge
-	for _, ref := range m.Resources {
-		if ref.ResourceSet == nil {
-			a = append(a, types.PatchStrategicMerge(ref.Path))
-			continue
-		}
-		for _, r := range ref.ResourceSet.Resources {
-			desiredFilename := r.DesiredPath()
-			if desiredFilename == "" {
-				a = append(a, types.PatchStrategicMerge(ref.Path))
-				continue
-			}
-			a = append(a, types.PatchStrategicMerge(desiredFilename))
-		}
-	}
-	return a
+func (m *Manifest) Basedir() string {
+	return filepath.Dir(m.Path)
 }
