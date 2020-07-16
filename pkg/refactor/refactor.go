@@ -40,12 +40,10 @@ func (p Plan) String() string {
 	_, _ = fmt.Fprintf(&s, "  patchesStrategicMerge: %s\n", p.PatchesStrategicMerge)
 	_, _ = fmt.Fprintf(&s, "files:\n")
 	for name, resources := range p.Create {
-		fullpath := filepath.Join(p.KustomizeManifest.Basedir(), name)
-		_, _ = fmt.Fprintf(&s, "  + %s %+v\n", fullpath, resources)
+		_, _ = fmt.Fprintf(&s, "  + %s (%d)\n", name, len(resources))
 	}
 	for _, name := range p.Remove {
-		fullpath := filepath.Join(p.KustomizeManifest.Basedir(), name)
-		_, _ = fmt.Fprintf(&s, "  - %s\n", fullpath)
+		_, _ = fmt.Fprintf(&s, "  - %s\n", name)
 	}
 	return s.String()
 }
