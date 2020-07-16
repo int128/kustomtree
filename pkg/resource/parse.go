@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Parse(name string, basedir string) (*Manifest, error) {
+func Parse(name string, basedir string) (*Set, error) {
 	f, err := os.Open(filepath.Join(basedir, name))
 	if err != nil {
 		return nil, fmt.Errorf("could not open the file: %w", err)
@@ -32,9 +32,7 @@ func Parse(name string, basedir string) (*Manifest, error) {
 		}
 		rs = append(rs, r)
 	}
-	return &Manifest{
-		Path:      name,
-		Basedir:   basedir,
+	return &Set{
 		Resources: rs,
 	}, nil
 }

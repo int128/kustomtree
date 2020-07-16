@@ -4,66 +4,55 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
-	"github.com/int128/kustomtree/pkg/resource"
 	"gopkg.in/yaml.v3"
 	"sigs.k8s.io/kustomize/api/types"
 )
 
-func Refactor(manifest *Manifest, dryRun bool) error {
-	for _, resourceManifest := range manifest.ResourceManifests {
-		for _, r := range resourceManifest.Resources {
-			desiredPath := r.DesiredPath()
+func Refactor(m *Manifest, dryRun bool) error {
+	for _, ref := range m.Resources {
+		if ref.ResourceSet == nil {
+			continue
+		}
+		for _, mr := range ref.ResourceSet.Resources {
+			desiredPath := mr.DesiredPath()
 			if desiredPath == "" {
-				log.Printf("SKIP: resource %s: unknown kind %s", resourceManifest.Path, r.Kind)
+				log.Printf("SKIP: resource %s: unknown kind %s", m.Path, mr.Kind)
 				continue
 			}
-			if resourceManifest.Path != desiredPath {
-				if dryRun {
-					log.Printf("DRYRUN: move resource %s -> %s", resourceManifest.Path, desiredPath)
-					continue
-				}
-				log.Printf("WRITE: resource %s -> %s", resourceManifest.Path, desiredPath)
-				fullpath := filepath.Join(resourceManifest.Basedir, desiredPath)
-				if err := resource.Write(fullpath, []*resource.Resource{r}); err != nil {
-					return fmt.Errorf("could not write to %s: %w", desiredPath, err)
-				}
+			if ref.Path != desiredPath {
+				log.Printf("DRYRUN: move resource %s -> %s", m.Path, desiredPath)
+				//TODO: write
 			}
 		}
 	}
 
-	for _, patchManifest := range manifest.PatchesStrategicMergeManifests {
-		for _, r := range patchManifest.Resources {
-			desiredPath := r.DesiredPath()
+	for _, ref := range m.PatchesStrategicMerge {
+		if ref.ResourceSet == nil {
+			continue
+		}
+		for _, mr := range ref.ResourceSet.Resources {
+			desiredPath := mr.DesiredPath()
 			if desiredPath == "" {
-				log.Printf("SKIP: patchesStrategicMerge %s: unknown kind %s", patchManifest.Path, r.Kind)
+				log.Printf("SKIP: patchesStrategicMerge %s: unknown kind %s", m.Path, mr.Kind)
 				continue
 			}
-			if patchManifest.Path != desiredPath {
-				if dryRun {
-					log.Printf("DRYRUN: move patchesStrategicMerge %s -> %s", patchManifest.Path, desiredPath)
-					continue
-				}
-				// TODO: aggregate nodes to same file
-				log.Printf("WRITE: patchesStrategicMerge %s -> %s", patchManifest.Path, desiredPath)
-				fullpath := filepath.Join(patchManifest.Basedir, desiredPath)
-				if err := resource.Write(fullpath, []*resource.Resource{r}); err != nil {
-					return fmt.Errorf("could not write to %s: %w", desiredPath, err)
-				}
+			if ref.Path != desiredPath {
+				log.Printf("DRYRUN: move patchesStrategicMerge %s -> %s", m.Path, desiredPath)
+				//TODO: write
 			}
 		}
 	}
 
-	manifest.Kustomization.Resources = manifest.DesiredResources()
-	manifest.Kustomization.PatchesStrategicMerge = manifest.DesiredPatchesStrategicMerge()
+	m.Kustomization.Resources = m.DesiredResources()
+	m.Kustomization.PatchesStrategicMerge = m.DesiredPatchesStrategicMerge()
 	if dryRun {
-		log.Printf("DRYRUN: update %s", manifest.Path)
+		log.Printf("DRYRUN: update %s", m.Path)
 		return nil
 	}
-	log.Printf("WRITE: update %s", manifest.Path)
-	if err := write(manifest.Path, manifest.Kustomization); err != nil {
-		return fmt.Errorf("could not write to %s: %w", manifest.Path, err)
+	log.Printf("WRITE: update %s", m.Path)
+	if err := write(m.Path, m.Kustomization); err != nil {
+		return fmt.Errorf("could not write to %s: %w", m.Path, err)
 	}
 	return nil
 }

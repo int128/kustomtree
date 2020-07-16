@@ -28,22 +28,24 @@ func Parse(name string) (*Manifest, error) {
 
 func parseNode(v types.Kustomization, name string) (*Manifest, error) {
 	basedir := filepath.Dir(name)
-	var rs, ps []*resource.Manifest
+	var rs []ResourceRef
 	for _, resourcePath := range v.Resources {
 		regular, err := isRegularFile(filepath.Join(basedir, resourcePath))
 		if err != nil {
 			return nil, fmt.Errorf("resource not found: %w", err)
 		}
 		if !regular {
+			rs = append(rs, ResourceRef{Path: resourcePath})
 			continue
 		}
 		m, err := resource.Parse(resourcePath, basedir)
 		if err != nil {
 			return nil, fmt.Errorf("could not load resource %s: %w", resourcePath, err)
 		}
-		rs = append(rs, m)
+		rs = append(rs, ResourceRef{Path: resourcePath, ResourceSet: m})
 	}
 
+	var ps []PatchStrategicMergeRef
 	for _, patch := range v.PatchesStrategicMerge {
 		resourcePath := string(patch)
 		regular, err := isRegularFile(filepath.Join(basedir, resourcePath))
@@ -51,20 +53,21 @@ func parseNode(v types.Kustomization, name string) (*Manifest, error) {
 			return nil, fmt.Errorf("patchesStrategicMerge not found: %w", err)
 		}
 		if !regular {
+			ps = append(ps, PatchStrategicMergeRef{Path: resourcePath})
 			continue
 		}
 		m, err := resource.Parse(resourcePath, basedir)
 		if err != nil {
 			return nil, fmt.Errorf("could not load patchesStrategicMerge %s: %w", resourcePath, err)
 		}
-		ps = append(ps, m)
+		ps = append(ps, PatchStrategicMergeRef{Path: resourcePath, ResourceSet: m})
 	}
 
 	return &Manifest{
-		Path:                           name,
-		Kustomization:                  &v,
-		ResourceManifests:              rs,
-		PatchesStrategicMergeManifests: ps,
+		Path:                  name,
+		Kustomization:         &v,
+		Resources:             rs,
+		PatchesStrategicMerge: ps,
 	}, nil
 }
 

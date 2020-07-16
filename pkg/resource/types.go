@@ -6,9 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Manifest struct {
-	Path      string // relative to kustomization.yaml
-	Basedir   string
+type Set struct {
 	Resources []*Resource
 }
 
