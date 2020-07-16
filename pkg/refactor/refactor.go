@@ -7,9 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"sigs.k8s.io/kustomize/api/types"
+
 	"github.com/int128/kustomtree/pkg/kustomize"
 	"github.com/int128/kustomtree/pkg/resource"
-	"sigs.k8s.io/kustomize/api/types"
 )
 
 type Plan struct {
@@ -48,6 +49,7 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 		Create:            make(map[string][]*resource.Resource),
 	}
 
+	removeSet := make(map[string]interface{})
 	resourceSet := make(map[string]interface{})
 	for _, ref := range m.Resources {
 		if ref.ResourceSet == nil {
@@ -62,7 +64,7 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 			}
 			resourceSet[desiredFilename] = nil
 			plan.Create[desiredFilename] = append(plan.Create[desiredFilename], r)
-			plan.Remove = append(plan.Remove, ref.Path)
+			removeSet[ref.Path] = nil
 		}
 	}
 	for k := range resourceSet {
@@ -84,11 +86,15 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 			}
 			patchSet[desiredFilename] = nil
 			plan.Create[desiredFilename] = append(plan.Create[desiredFilename], r)
-			plan.Remove = append(plan.Remove, ref.Path)
+			removeSet[ref.Path] = nil
 		}
 	}
 	for k := range patchSet {
 		plan.PatchesStrategicMerge = append(plan.PatchesStrategicMerge, types.PatchStrategicMerge(k))
+	}
+
+	for k := range removeSet {
+		plan.Remove = append(plan.Remove, k)
 	}
 	return plan
 }
