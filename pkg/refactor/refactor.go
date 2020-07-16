@@ -58,7 +58,7 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 		}
 		for _, r := range ref.ResourceSet.Resources {
 			desiredFilename := r.DesiredPath()
-			if desiredFilename == "" || m.Path == desiredFilename {
+			if desiredFilename == "" || ref.Path == desiredFilename {
 				resourceSet[ref.Path] = nil
 				continue
 			}
@@ -80,7 +80,7 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 		}
 		for _, r := range ref.ResourceSet.Resources {
 			desiredFilename := r.DesiredPath()
-			if desiredFilename == "" || m.Path == desiredFilename {
+			if desiredFilename == "" || ref.Path == desiredFilename {
 				patchSet[ref.Path] = nil
 				continue
 			}
