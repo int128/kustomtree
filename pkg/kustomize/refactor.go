@@ -13,20 +13,20 @@ import (
 func Refactor(manifest *Manifest, dryRun bool) error {
 	for _, resourceManifest := range manifest.ResourceManifests {
 		for _, resource := range resourceManifest.Resources {
-			desiredFilename := resource.DesiredFilename()
-			if desiredFilename == "" {
-				log.Printf("SKIP: resource %s: unknown kind %s", resourceManifest.Filename, resource.Kind)
+			desiredPath := resource.DesiredPath()
+			if desiredPath == "" {
+				log.Printf("SKIP: resource %s: unknown kind %s", resourceManifest.Path, resource.Kind)
 				continue
 			}
-			if resourceManifest.Filename != desiredFilename {
+			if resourceManifest.Path != desiredPath {
 				if dryRun {
-					log.Printf("DRYRUN: move resource %s -> %s", resourceManifest.Filename, desiredFilename)
+					log.Printf("DRYRUN: move resource %s -> %s", resourceManifest.Path, desiredPath)
 					continue
 				}
-				log.Printf("WRITE: resource %s -> %s", resourceManifest.Filename, desiredFilename)
-				fullpath := filepath.Join(resourceManifest.Basedir, desiredFilename)
+				log.Printf("WRITE: resource %s -> %s", resourceManifest.Path, desiredPath)
+				fullpath := filepath.Join(resourceManifest.Basedir, desiredPath)
 				if err := writeNode(fullpath, resource.Node); err != nil {
-					return fmt.Errorf("could not write to %s: %w", desiredFilename, err)
+					return fmt.Errorf("could not write to %s: %w", desiredPath, err)
 				}
 			}
 		}
@@ -34,21 +34,21 @@ func Refactor(manifest *Manifest, dryRun bool) error {
 
 	for _, patchManifest := range manifest.PatchesStrategicMergeManifests {
 		for _, resource := range patchManifest.Resources {
-			desiredFilename := resource.DesiredFilename()
-			if desiredFilename == "" {
-				log.Printf("SKIP: patchesStrategicMerge %s: unknown kind %s", patchManifest.Filename, resource.Kind)
+			desiredPath := resource.DesiredPath()
+			if desiredPath == "" {
+				log.Printf("SKIP: patchesStrategicMerge %s: unknown kind %s", patchManifest.Path, resource.Kind)
 				continue
 			}
-			if patchManifest.Filename != desiredFilename {
+			if patchManifest.Path != desiredPath {
 				if dryRun {
-					log.Printf("DRYRUN: move patchesStrategicMerge %s -> %s", patchManifest.Filename, desiredFilename)
+					log.Printf("DRYRUN: move patchesStrategicMerge %s -> %s", patchManifest.Path, desiredPath)
 					continue
 				}
 				// TODO: aggregate nodes to same file
-				log.Printf("WRITE: patchesStrategicMerge %s -> %s", patchManifest.Filename, desiredFilename)
-				fullpath := filepath.Join(patchManifest.Basedir, desiredFilename)
+				log.Printf("WRITE: patchesStrategicMerge %s -> %s", patchManifest.Path, desiredPath)
+				fullpath := filepath.Join(patchManifest.Basedir, desiredPath)
 				if err := writeNode(fullpath, resource.Node); err != nil {
-					return fmt.Errorf("could not write to %s: %w", desiredFilename, err)
+					return fmt.Errorf("could not write to %s: %w", desiredPath, err)
 				}
 			}
 		}
@@ -57,12 +57,12 @@ func Refactor(manifest *Manifest, dryRun bool) error {
 	manifest.Kustomization.Resources = manifest.DesiredResources()
 	manifest.Kustomization.PatchesStrategicMerge = manifest.DesiredPatchesStrategicMerge()
 	if dryRun {
-		log.Printf("DRYRUN: update %s", manifest.Filename)
+		log.Printf("DRYRUN: update %s", manifest.Path)
 		return nil
 	}
-	log.Printf("WRITE: update %s", manifest.Filename)
-	if err := writeKustomizationManifest(manifest.Filename, manifest.Kustomization); err != nil {
-		return fmt.Errorf("could not write to %s: %w", manifest.Filename, err)
+	log.Printf("WRITE: update %s", manifest.Path)
+	if err := writeKustomizationManifest(manifest.Path, manifest.Kustomization); err != nil {
+		return fmt.Errorf("could not write to %s: %w", manifest.Path, err)
 	}
 	return nil
 }

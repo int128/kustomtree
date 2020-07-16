@@ -10,7 +10,7 @@ import (
 )
 
 type Manifest struct {
-	Filename  string // relative to kustomization.yaml
+	Path      string // relative to kustomization.yaml
 	Basedir   string
 	Resources []*Resource
 }
@@ -20,7 +20,7 @@ type Resource struct {
 	Node *yaml.Node // subtree of the resource
 }
 
-func (r *Resource) DesiredFilename() string {
+func (r *Resource) DesiredPath() string {
 	gvk := fmt.Sprintf("%s/%s", r.APIVersion, r.Kind)
 	switch gvk {
 	case "apps/v1/Deployment":
@@ -65,7 +65,7 @@ func Parse(name string, basedir string) (*Manifest, error) {
 		rs = append(rs, r)
 	}
 	return &Manifest{
-		Filename:  name,
+		Path:      name,
 		Basedir:   basedir,
 		Resources: rs,
 	}, nil
