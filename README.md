@@ -1,11 +1,8 @@
 # kustomtree
 
-This is a tool for refactoring [Kustomize](https://github.com/kubernetes-sigs/kustomize) manifests.
+This is a command line tool for refactoring of [Kustomize](https://github.com/kubernetes-sigs/kustomize) manifests.
 
-It finds `kustomization.yaml` and dependent manifests.
-For now `resources` and `patchesStrategicMerge` are supported.
-It sorts the manifest into directories by kind.
-
+It sorts manifests into kind based directories.
 For example,
 
 ```
@@ -16,3 +13,22 @@ For example,
 │   └── helloworld.yaml
 └── kustomization.yaml
 ```
+
+It will perform the following steps.
+
+1. Find `kustomization.yaml`.
+1. Find its dependencies such as `resources` and `patchesStrategicMerge`.
+1. Rename the dependencies to `KIND/NAME.yaml`.
+
+
+## Getting Started
+
+```sh
+go get github.com/int128/kustomtree
+```
+
+
+## Contributions
+
+This is an open source software.
+Feel free to open issues and pull requests.
