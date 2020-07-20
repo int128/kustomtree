@@ -8,17 +8,20 @@ For example,
 ```
 .
 ├── deployment
-│   └── helloworld.yaml
+│   └── hello-world.yaml
 ├── service
-│   └── helloworld.yaml
+│   └── hello-world.yaml
+├── ingress
+│   └── hello-world.yaml
 └── kustomization.yaml
 ```
 
 It will perform the following steps.
 
 1. Find `kustomization.yaml`.
-1. Find its dependencies such as `resources` and `patchesStrategicMerge`.
-1. Rename the dependencies to `KIND/NAME.yaml`.
+1. Find manifest files in `resources` and `patchesStrategicMerge`.
+1. Rename the manifest files to `KIND/NAME.yaml`.
+   If filename contains a placeholder (e.g. `-${FOO}`), it will be removed.
 
 
 ## Getting Started
