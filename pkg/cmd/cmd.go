@@ -45,7 +45,7 @@ func run(dirname string, o options) error {
 		}
 		log.Printf("== PLAN: %s", manifest.Path)
 		plan := refactor.ComputePlan(manifest)
-		log.Print(plan)
+		log.Println(refactor.Format(plan))
 		if !o.dryRun {
 			log.Printf("== APPLY: %s", manifest.Path)
 			if err := refactor.Apply(plan); err != nil {

@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -28,24 +27,6 @@ type Plan struct {
 
 func (p *Plan) HasChange() bool {
 	return len(p.Remove)+len(p.Create) > 0
-}
-
-func (p Plan) String() string {
-	if !p.HasChange() {
-		return "NO_CHANGE"
-	}
-	var s strings.Builder
-	_, _ = fmt.Fprintf(&s, "manifest:\n")
-	_, _ = fmt.Fprintf(&s, "  resources: %s\n", p.Resources)
-	_, _ = fmt.Fprintf(&s, "  patchesStrategicMerge: %s\n", p.PatchesStrategicMerge)
-	_, _ = fmt.Fprintf(&s, "files:\n")
-	for name, resources := range p.Create {
-		_, _ = fmt.Fprintf(&s, "  + %s (%d)\n", name, len(resources))
-	}
-	for _, name := range p.Remove {
-		_, _ = fmt.Fprintf(&s, "  - %s\n", name)
-	}
-	return s.String()
 }
 
 func ComputePlan(m *kustomize.Manifest) Plan {
