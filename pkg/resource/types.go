@@ -25,6 +25,9 @@ func (r *Resource) DesiredPath() string {
 	if r.APIVersion == "autoscaling/v1" && r.Kind == "HorizontalPodAutoscaler" {
 		return fmt.Sprintf("hpa/%s.yaml", resourceFilename)
 	}
+	if r.APIVersion == "autoscaling.k8s.io/v1" && r.Kind == "VerticalPodAutoscaler" {
+		return fmt.Sprintf("vpa/%s.yaml", resourceFilename)
+	}
 	if r.APIVersion == "policy/v1beta1" && r.Kind == "PodDisruptionBudget" {
 		return fmt.Sprintf("pdb/%s.yaml", resourceFilename)
 	}
