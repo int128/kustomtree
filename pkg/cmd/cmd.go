@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/int128/kustomtree/pkg/kustomize"
+	"github.com/int128/kustomtree/pkg/kustomization"
 	"github.com/int128/kustomtree/pkg/refactor"
 )
 
@@ -39,7 +39,7 @@ func run(dirname string, o options) error {
 		return fmt.Errorf("could not find: %w", err)
 	}
 	for _, kustomizationYAML := range kustomizationYAMLs {
-		manifest, err := kustomize.Parse(kustomizationYAML)
+		manifest, err := kustomization.Parse(kustomizationYAML)
 		if err != nil {
 			return fmt.Errorf("could not parse YAML: %w", err)
 		}
