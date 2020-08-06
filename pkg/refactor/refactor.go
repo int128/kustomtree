@@ -8,12 +8,12 @@ import (
 
 	"sigs.k8s.io/kustomize/api/types"
 
-	"github.com/int128/kustomtree/pkg/kustomize"
+	"github.com/int128/kustomtree/pkg/kustomization"
 	"github.com/int128/kustomtree/pkg/resource"
 )
 
 type Plan struct {
-	KustomizeManifest *kustomize.Manifest
+	KustomizationManifest *kustomization.Manifest
 
 	Resources             []string
 	PatchesStrategicMerge []types.PatchStrategicMerge
@@ -29,10 +29,10 @@ func (p *Plan) HasChange() bool {
 	return len(p.Remove)+len(p.Create) > 0
 }
 
-func ComputePlan(m *kustomize.Manifest) Plan {
+func ComputePlan(m *kustomization.Manifest) Plan {
 	plan := Plan{
-		KustomizeManifest: m,
-		Create:            make(map[string][]*resource.Resource),
+		KustomizationManifest: m,
+		Create:                make(map[string][]*resource.Resource),
 	}
 
 	removeSet := make(map[string]interface{})
@@ -87,7 +87,7 @@ func ComputePlan(m *kustomize.Manifest) Plan {
 
 func Apply(plan Plan) error {
 	for _, name := range plan.Remove {
-		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
+		fullpath := filepath.Join(plan.KustomizationManifest.Basedir(), name)
 		log.Printf("removing %s", fullpath)
 		if err := os.Remove(fullpath); err != nil {
 			return fmt.Errorf("could not remove %s: %w", fullpath, err)
@@ -95,7 +95,7 @@ func Apply(plan Plan) error {
 	}
 
 	for name, resources := range plan.Create {
-		fullpath := filepath.Join(plan.KustomizeManifest.Basedir(), name)
+		fullpath := filepath.Join(plan.KustomizationManifest.Basedir(), name)
 		log.Printf("creating %s", fullpath)
 		if err := resource.Write(fullpath, resources); err != nil {
 			return fmt.Errorf("could not create %s: %w", fullpath, err)
@@ -103,10 +103,10 @@ func Apply(plan Plan) error {
 	}
 
 	if plan.HasChange() {
-		log.Printf("writing to %s", plan.KustomizeManifest.Path)
-		plan.KustomizeManifest.Kustomization.Resources = plan.Resources
-		plan.KustomizeManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge
-		if err := kustomize.Write(plan.KustomizeManifest.Path, plan.KustomizeManifest.Kustomization); err != nil {
+		log.Printf("writing to %s", plan.KustomizationManifest.Path)
+		plan.KustomizationManifest.Kustomization.Resources = plan.Resources
+		plan.KustomizationManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge
+		if err := kustomization.Write(plan.KustomizationManifest.Path, plan.KustomizationManifest.Kustomization); err != nil {
 			return fmt.Errorf("could not update kustomization.yaml: %w", err)
 		}
 	}

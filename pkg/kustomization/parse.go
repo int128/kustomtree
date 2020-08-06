@@ -1,4 +1,4 @@
-package kustomize
+package kustomization
 
 import (
 	"fmt"
