@@ -6,8 +6,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/int128/kustomtree/pkg/kustomization"
+	"github.com/int128/kustomtree/pkg/kustomize"
 	"github.com/int128/kustomtree/pkg/refactor"
 )
 
@@ -45,13 +49,38 @@ func run(dirname string, o options) error {
 		}
 		log.Printf("== PLAN: %s", manifest.Path)
 		plan := refactor.ComputePlan(manifest)
-		log.Println(refactor.Format(plan))
-		if !o.dryRun {
-			log.Printf("== APPLY: %s", manifest.Path)
-			if err := refactor.Apply(plan); err != nil {
-				return fmt.Errorf("could not apply: %w", err)
-			}
+		if !plan.HasChange() {
+			continue
 		}
+		log.Println(refactor.Format(plan))
+		if o.dryRun {
+			continue
+		}
+		log.Printf("== APPLY: %s", manifest.Path)
+		if err := applyAndVerify(plan); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func applyAndVerify(plan refactor.Plan) error {
+	originalBuild, err := kustomize.Build(plan.KustomizationManifest.Basedir())
+	if err != nil {
+		return fmt.Errorf("kustomize build error: %w", err)
+	}
+	if err := refactor.Apply(plan); err != nil {
+		return fmt.Errorf("could not apply: %w", err)
+	}
+	refactoredBuild, err := kustomize.Build(plan.KustomizationManifest.Basedir())
+	if err != nil {
+		return fmt.Errorf("kustomize build error: %w", err)
+	}
+	if originalBuild != refactoredBuild {
+		originalBuildLines := strings.Split(originalBuild, "\r\n")
+		refactoredBuildLines := strings.Split(refactoredBuild, "\r\n")
+		diff := cmp.Diff(originalBuildLines, refactoredBuildLines)
+		return fmt.Errorf("refactoring caused breaking change(s):\n%s", diff)
 	}
 	return nil
 }
