@@ -16,12 +16,15 @@ For example,
 └── kustomization.yaml
 ```
 
-It will perform the following steps.
+It finds `kustomization.yaml` and performs the following steps for each `kustomization.yaml`:
 
-1. Find `kustomization.yaml`.
-1. Find manifest files in `resources` and `patchesStrategicMerge`.
-1. Rename the manifest files to `KIND/NAME.yaml`.
-   If filename contains a placeholder (e.g. `-${FOO}`), it will be removed.
+1. Run `kustomize build`.
+1. Find Kubernetes resources in files specified in `resources` and `patchesStrategicMerge`.
+1. Move a Kubernetes resource into a file of `KIND/NAME.yaml`.
+   If the resource name contains a placeholder (e.g. `-${FOO}`), it is removed.
+1. Run `kustomize build`.
+1. Verify that the rendered manifests of 2 and 4 are same.
+   This ensures no breaking change in refactoring.
 
 
 ## Getting Started
