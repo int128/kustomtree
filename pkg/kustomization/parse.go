@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 	"sigs.k8s.io/kustomize/api/types"
@@ -30,37 +31,41 @@ func parseNode(v types.Kustomization, name string) (*Manifest, error) {
 	basedir := filepath.Dir(name)
 	var rs []ResourceRef
 	for _, resourcePath := range v.Resources {
-		regular, err := isRegularFile(filepath.Join(basedir, resourcePath))
-		if err != nil {
+		ref, err := determineResourceReference(resourcePath, basedir)
+		switch {
+		case err != nil:
 			return nil, fmt.Errorf("resource not found: %w", err)
-		}
-		if !regular {
+
+		case ref == resourceReferenceFile:
+			m, err := resource.Parse(resourcePath, basedir)
+			if err != nil {
+				return nil, fmt.Errorf("could not load resource %s: %w", resourcePath, err)
+			}
+			rs = append(rs, ResourceRef{Path: resourcePath, ResourceSet: m})
+
+		default:
 			rs = append(rs, ResourceRef{Path: resourcePath})
-			continue
 		}
-		m, err := resource.Parse(resourcePath, basedir)
-		if err != nil {
-			return nil, fmt.Errorf("could not load resource %s: %w", resourcePath, err)
-		}
-		rs = append(rs, ResourceRef{Path: resourcePath, ResourceSet: m})
 	}
 
 	var ps []PatchStrategicMergeRef
 	for _, patch := range v.PatchesStrategicMerge {
 		resourcePath := string(patch)
-		regular, err := isRegularFile(filepath.Join(basedir, resourcePath))
-		if err != nil {
+		ref, err := determineResourceReference(resourcePath, basedir)
+		switch {
+		case err != nil:
 			return nil, fmt.Errorf("patchesStrategicMerge not found: %w", err)
-		}
-		if !regular {
+
+		case ref == resourceReferenceFile:
+			m, err := resource.Parse(resourcePath, basedir)
+			if err != nil {
+				return nil, fmt.Errorf("could not load patchesStrategicMerge %s: %w", resourcePath, err)
+			}
+			ps = append(ps, PatchStrategicMergeRef{Path: resourcePath, ResourceSet: m})
+
+		default:
 			ps = append(ps, PatchStrategicMergeRef{Path: resourcePath})
-			continue
 		}
-		m, err := resource.Parse(resourcePath, basedir)
-		if err != nil {
-			return nil, fmt.Errorf("could not load patchesStrategicMerge %s: %w", resourcePath, err)
-		}
-		ps = append(ps, PatchStrategicMergeRef{Path: resourcePath, ResourceSet: m})
 	}
 
 	return &Manifest{
@@ -71,10 +76,39 @@ func parseNode(v types.Kustomization, name string) (*Manifest, error) {
 	}, nil
 }
 
-func isRegularFile(name string) (bool, error) {
-	s, err := os.Stat(name)
-	if err != nil {
-		return false, fmt.Errorf("could not stat: %w", err)
+type resourceReference int
+
+const (
+	_ resourceReference = iota
+	resourceReferenceFile
+	resourceReferenceDir
+	resourceReferenceURL
+)
+
+func determineResourceReference(path, baseDir string) (resourceReference, error) {
+	// see https://github.com/kubernetes-sigs/kustomize/blob/master/examples/remoteBuild.md#url-format
+	if strings.HasPrefix(path, "https://") {
+		return resourceReferenceURL, nil
 	}
-	return s.Mode().IsRegular(), nil
+	if strings.HasPrefix(path, "http://") {
+		return resourceReferenceURL, nil
+	}
+	if strings.HasPrefix(path, "ssh://") {
+		return resourceReferenceURL, nil
+	}
+	if strings.HasPrefix(path, "git:") {
+		return resourceReferenceURL, nil
+	}
+	if strings.HasPrefix(path, "github.com/") {
+		return resourceReferenceURL, nil
+	}
+
+	s, err := os.Stat(filepath.Join(baseDir, path))
+	if err != nil {
+		return 0, fmt.Errorf("stat error: %w", err)
+	}
+	if s.IsDir() {
+		return resourceReferenceDir, nil
+	}
+	return resourceReferenceFile, nil
 }

@@ -20,6 +20,8 @@ func TestParse(t *testing.T) {
 		Path: "testdata/kustomization.yaml",
 		Resources: []ResourceRef{
 			{Path: "base"},
+			{Path: "github.com/octocat/Spoon-Knife/index.html"},
+			{Path: "https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md"},
 		},
 		PatchesStrategicMerge: []PatchStrategicMergeRef{
 			{
@@ -41,11 +43,21 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
+			{Path: "github.com/octocat/Spoon-Knife/README.md"},
+			{Path: "https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html"},
 		},
 		Kustomization: &types.Kustomization{
-			NamePrefix:            "cluster-a-",
-			PatchesStrategicMerge: []types.PatchStrategicMerge{"deployment.yaml"},
-			Resources:             []string{"base"},
+			NamePrefix: "cluster-a-",
+			PatchesStrategicMerge: []types.PatchStrategicMerge{
+				"deployment.yaml",
+				"github.com/octocat/Spoon-Knife/README.md",
+				"https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html",
+			},
+			Resources: []string{
+				"base",
+				"github.com/octocat/Spoon-Knife/index.html",
+				"https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md",
+			},
 		},
 	}
 	o := []cmp.Option{
