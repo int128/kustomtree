@@ -16,10 +16,6 @@ func TestParse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Parse error: %+v", err)
 	}
-	var wantResource resource.Resource
-	wantResource.APIVersion = "apps/v1"
-	wantResource.Kind = "Deployment"
-	wantResource.Metadata.Name = "helloworld"
 	want := &Manifest{
 		Path: "testdata/kustomization.yaml",
 		Resources: []ResourceRef{
@@ -30,20 +26,30 @@ func TestParse(t *testing.T) {
 				Path: "deployment.yaml",
 				ResourceSet: &resource.Set{
 					Resources: []*resource.Resource{
-						&wantResource,
+						{
+							APIVersion: "apps/v1",
+							Kind:       "Deployment",
+							Metadata: resource.Metadata{
+								Name: "helloworld",
+							},
+							Node: &yaml.Node{
+								Kind:   yaml.DocumentNode,
+								Line:   1,
+								Column: 1,
+							},
+						},
 					},
 				},
 			},
 		},
+		Kustomization: &types.Kustomization{
+			NamePrefix:            "cluster-a-",
+			PatchesStrategicMerge: []types.PatchStrategicMerge{"deployment.yaml"},
+			Resources:             []string{"base"},
+		},
 	}
 	o := []cmp.Option{
-		cmp.AllowUnexported(
-			resource.Resource{},
-		),
-		cmpopts.IgnoreTypes(
-			new(types.Kustomization),
-			new(yaml.Node),
-		),
+		cmpopts.IgnoreFields(yaml.Node{}, "Content"),
 	}
 	if diff := cmp.Diff(want, got, o...); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)

@@ -12,9 +12,18 @@ type Set struct {
 	Resources []*Resource
 }
 
+// Resource represents resources defined in kustomization.yaml.
 type Resource struct {
-	rootType
-	Node *yaml.Node // subtree of the resource
+	APIVersion string   `yaml:"apiVersion"`
+	Kind       string   `yaml:"kind"`
+	Metadata   Metadata `yaml:"metadata"`
+
+	Node *yaml.Node `yaml:"-"` // subtree of the resource
+}
+
+// Metadata represents a metadata of resource.
+type Metadata struct {
+	Name string `yaml:"name"`
 }
 
 // DesiredPath returns a path for the resource.
