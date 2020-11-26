@@ -38,22 +38,9 @@ func Parse(name string, basedir string) (*Set, error) {
 }
 
 func parseNode(n *yaml.Node) (*Resource, error) {
-	var v rootType
-	if err := n.Decode(&v); err != nil {
+	r := Resource{Node: n}
+	if err := n.Decode(&r); err != nil {
 		return nil, fmt.Errorf("could not decode the node: %w", err)
 	}
-	return &Resource{
-		rootType: v,
-		Node:     n,
-	}, nil
-}
-
-type rootType struct {
-	APIVersion string       `yaml:"apiVersion"`
-	Kind       string       `yaml:"kind"`
-	Metadata   metadataType `yaml:"metadata"`
-}
-
-type metadataType struct {
-	Name string `yaml:"name"`
+	return &r, nil
 }
