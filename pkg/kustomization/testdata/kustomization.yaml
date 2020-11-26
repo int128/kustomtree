@@ -1,5 +1,13 @@
 resources:
   - base
+  # below are ignored
+  - github.com/octocat/Spoon-Knife/index.html
+  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md
+
 patchesStrategicMerge:
   - deployment.yaml
+  # below are ignored
+  - github.com/octocat/Spoon-Knife/README.md
+  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html
+
 namePrefix: cluster-a-
