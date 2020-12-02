@@ -1,13 +1,12 @@
 resources:
+  - github.com/octocat/Spoon-Knife/index.html  # should be ignored
   - base
-  # below are ignored
-  - github.com/octocat/Spoon-Knife/index.html
-  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md
+  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md  # should be ignored
+  - service.yaml
 
 patchesStrategicMerge:
+  - github.com/octocat/Spoon-Knife/README.md  # should be ignored
   - deployment.yaml
-  # below are ignored
-  - github.com/octocat/Spoon-Knife/README.md
-  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html
+  - https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html  # should be ignored
 
 namePrefix: cluster-a-
