@@ -47,5 +47,12 @@ func (r *Resource) DesiredPath() string {
 var rePlaceholderInYAML = regexp.MustCompile(`-?\${.+?}`)
 
 func sanitizeResourceFilename(name string) string {
+	name = strings.Map(func(r rune) rune {
+		// some resource name has special char, e.g. ClusterRoleBindings
+		if r == ':' {
+			return '-'
+		}
+		return r
+	}, name)
 	return rePlaceholderInYAML.ReplaceAllString(name, "")
 }

@@ -21,7 +21,8 @@ It finds `kustomization.yaml` and performs the following steps for each `kustomi
 1. Run `kustomize build`.
 1. Find Kubernetes resources in files specified in `resources` and `patchesStrategicMerge`.
 1. Move a Kubernetes resource into a file of `KIND/NAME.yaml`.
-   If the resource name contains a placeholder (e.g. `-${FOO}`), it is removed.
+   - Placeholder (like `-${FOO}`) is removed.
+   - Special character (`:`) is replaced with `-`.
 1. Run `kustomize build`.
 1. Verify that the rendered manifests of 2 and 4 are same.
    This ensures no breaking change in refactoring.

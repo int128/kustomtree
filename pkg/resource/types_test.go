@@ -39,6 +39,14 @@ func TestResource_DesiredPath(t *testing.T) {
 			},
 			"service/hello-world.yaml",
 		},
+		"special-char": {
+			Resource{
+				APIVersion: "rbac.authorization.k8s.io/v1",
+				Kind:       "ClusterRoleBinding",
+				Metadata:   Metadata{Name: "example:admin"},
+			},
+			"clusterrolebinding/example-admin.yaml",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			got := c.resource.DesiredPath()
