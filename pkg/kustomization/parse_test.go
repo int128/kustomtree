@@ -19,11 +19,31 @@ func TestParse(t *testing.T) {
 	want := &Manifest{
 		Path: "testdata/kustomization.yaml",
 		Resources: []ResourceRef{
-			{Path: "base"},
 			{Path: "github.com/octocat/Spoon-Knife/index.html"},
+			{Path: "base"},
 			{Path: "https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md"},
+			{
+				Path: "service.yaml",
+				ResourceSet: &resource.Set{
+					Resources: []*resource.Resource{
+						{
+							APIVersion: "v1",
+							Kind:       "Service",
+							Metadata: resource.Metadata{
+								Name: "echoserver",
+							},
+							Node: &yaml.Node{
+								Kind:   yaml.DocumentNode,
+								Line:   1,
+								Column: 1,
+							},
+						},
+					},
+				},
+			},
 		},
 		PatchesStrategicMerge: []PatchStrategicMergeRef{
+			{Path: "github.com/octocat/Spoon-Knife/README.md"},
 			{
 				Path: "deployment.yaml",
 				ResourceSet: &resource.Set{
@@ -43,20 +63,20 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
-			{Path: "github.com/octocat/Spoon-Knife/README.md"},
 			{Path: "https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html"},
 		},
 		Kustomization: &types.Kustomization{
 			NamePrefix: "cluster-a-",
 			PatchesStrategicMerge: []types.PatchStrategicMerge{
-				"deployment.yaml",
 				"github.com/octocat/Spoon-Knife/README.md",
+				"deployment.yaml",
 				"https://raw.githubusercontent.com/octocat/Spoon-Knife/master/index.html",
 			},
 			Resources: []string{
-				"base",
 				"github.com/octocat/Spoon-Knife/index.html",
+				"base",
 				"https://raw.githubusercontent.com/octocat/Spoon-Knife/master/README.md",
+				"service.yaml",
 			},
 		},
 	}
