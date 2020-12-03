@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
@@ -16,13 +17,15 @@ import (
 )
 
 type options struct {
-	dryRun bool
+	dryRun            bool
+	excludePathRegexp string
 }
 
 func Run(osArgs []string) error {
 	f := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	var o options
 	f.BoolVar(&o.dryRun, "dry-run", false, "If set, do not write files actually")
+	f.StringVar(&o.excludePathRegexp, "exclude-path-regexp", "", "If set, exclude the path from refactoring (e.g. ^vendor/)")
 	if err := f.Parse(osArgs[1:]); err != nil {
 		return fmt.Errorf("wrong argument: %w", err)
 	}
@@ -38,6 +41,15 @@ func Run(osArgs []string) error {
 }
 
 func run(dirname string, o options) error {
+	var refactorOption refactor.Option
+	if o.excludePathRegexp != "" {
+		var err error
+		refactorOption.ExcludePathRegexp, err = regexp.Compile(o.excludePathRegexp)
+		if err != nil {
+			return fmt.Errorf("invalid exclude-path-regexp: %w", err)
+		}
+	}
+
 	kustomizationYAMLs, err := find(dirname, "kustomization.yaml")
 	if err != nil {
 		return fmt.Errorf("could not find: %w", err)
@@ -48,7 +60,7 @@ func run(dirname string, o options) error {
 			return fmt.Errorf("could not parse YAML: %w", err)
 		}
 		log.Printf("== PLAN: %s", manifest.Path)
-		plan := refactor.ComputePlan(manifest)
+		plan := refactor.ComputePlan(manifest, refactorOption)
 		if !plan.HasChange() {
 			continue
 		}
