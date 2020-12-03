@@ -9,6 +9,7 @@ import (
 	"sigs.k8s.io/kustomize/api/types"
 
 	"github.com/int128/kustomtree/pkg/kustomization"
+	"github.com/int128/kustomtree/pkg/refactor/orderedset"
 	"github.com/int128/kustomtree/pkg/resource"
 )
 
@@ -34,54 +35,50 @@ func ComputePlan(m *kustomization.Manifest) Plan {
 		KustomizationManifest: m,
 		Create:                make(map[string][]*resource.Resource),
 	}
+	var removeSet orderedset.Strings
 
-	removeSet := make(map[string]interface{})
-	resourceSet := make(map[string]interface{})
+	var resourceSet orderedset.Strings
 	for _, ref := range m.Resources {
 		if ref.ResourceSet == nil {
-			resourceSet[ref.Path] = nil
+			resourceSet.Append(ref.Path)
 			continue
 		}
 		for _, r := range ref.ResourceSet.Resources {
 			desiredFilename := r.DesiredPath()
 			if desiredFilename == "" || ref.Path == desiredFilename {
-				resourceSet[ref.Path] = nil
+				resourceSet.Append(ref.Path)
 				continue
 			}
-			resourceSet[desiredFilename] = nil
+			resourceSet.Append(desiredFilename)
 			plan.Create[desiredFilename] = append(plan.Create[desiredFilename], r)
-			removeSet[ref.Path] = nil
+			removeSet.Append(ref.Path)
 		}
 	}
-	for k := range resourceSet {
-		plan.Resources = append(plan.Resources, k)
-	}
+	plan.Resources = append(plan.Resources, resourceSet.Get()...)
 
 	//TODO: consider if resource and patch have same name
-	patchSet := make(map[string]interface{})
+	var patchSet orderedset.Strings
 	for _, ref := range m.PatchesStrategicMerge {
 		if ref.ResourceSet == nil {
-			patchSet[ref.Path] = nil
+			patchSet.Append(ref.Path)
 			continue
 		}
 		for _, r := range ref.ResourceSet.Resources {
 			desiredFilename := r.DesiredPath()
 			if desiredFilename == "" || ref.Path == desiredFilename {
-				patchSet[ref.Path] = nil
+				patchSet.Append(ref.Path)
 				continue
 			}
-			patchSet[desiredFilename] = nil
+			patchSet.Append(desiredFilename)
 			plan.Create[desiredFilename] = append(plan.Create[desiredFilename], r)
-			removeSet[ref.Path] = nil
+			removeSet.Append(ref.Path)
 		}
 	}
-	for k := range patchSet {
+	for _, k := range patchSet.Get() {
 		plan.PatchesStrategicMerge = append(plan.PatchesStrategicMerge, types.PatchStrategicMerge(k))
 	}
 
-	for k := range removeSet {
-		plan.Remove = append(plan.Remove, k)
-	}
+	plan.Remove = append(plan.Remove, removeSet.Get()...)
 	return plan
 }
 
