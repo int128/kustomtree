@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -12,6 +13,10 @@ import (
 	"github.com/int128/kustomtree/pkg/refactor/orderedset"
 	"github.com/int128/kustomtree/pkg/resource"
 )
+
+type Option struct {
+	ExcludePathRegexp *regexp.Regexp
+}
 
 type Plan struct {
 	KustomizationManifest *kustomization.Manifest
@@ -30,7 +35,11 @@ func (p *Plan) HasChange() bool {
 	return len(p.Remove)+len(p.Create) > 0
 }
 
-func ComputePlan(m *kustomization.Manifest) Plan {
+func ComputePlan(m *kustomization.Manifest, o Option) Plan {
+	if o.ExcludePathRegexp == nil {
+		o.ExcludePathRegexp = regexp.MustCompile(`^$`)
+	}
+
 	plan := Plan{
 		KustomizationManifest: m,
 		Create:                make(map[string][]*resource.Resource),
@@ -39,6 +48,10 @@ func ComputePlan(m *kustomization.Manifest) Plan {
 
 	var resourceSet orderedset.Strings
 	for _, ref := range m.Resources {
+		if o.ExcludePathRegexp.MatchString(ref.Path) {
+			resourceSet.Append(ref.Path)
+			continue
+		}
 		if ref.ResourceSet == nil {
 			resourceSet.Append(ref.Path)
 			continue
@@ -59,6 +72,10 @@ func ComputePlan(m *kustomization.Manifest) Plan {
 	//TODO: consider if resource and patch have same name
 	var patchSet orderedset.Strings
 	for _, ref := range m.PatchesStrategicMerge {
+		if o.ExcludePathRegexp.MatchString(ref.Path) {
+			patchSet.Append(ref.Path)
+			continue
+		}
 		if ref.ResourceSet == nil {
 			patchSet.Append(ref.Path)
 			continue

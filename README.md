@@ -34,6 +34,21 @@ It finds `kustomization.yaml` and performs the following steps for each `kustomi
 go get github.com/int128/kustomtree
 ```
 
+### Exclude path
+
+You can exclude manifest(s) from refactoring by `-exclude-path-regexp` flag.
+
+For example, pass `-exclude-path-regexp=^vendor/` to exclude files in `vendor` directory, like:
+
+```
+.
+├── deployment
+│   └── hello-world.yaml
+├── vendor
+│   └── generated.yaml
+└── kustomization.yaml
+```
+
 
 ## Contributions
 
