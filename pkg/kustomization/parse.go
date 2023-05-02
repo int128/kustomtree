@@ -49,6 +49,7 @@ func parseNode(v types.Kustomization, name string) (*Manifest, error) {
 	}
 
 	var ps []PatchStrategicMergeRef
+	//nolint:staticcheck
 	for _, patch := range v.PatchesStrategicMerge {
 		resourcePath := string(patch)
 		ref, err := determineResourceReference(resourcePath, basedir)

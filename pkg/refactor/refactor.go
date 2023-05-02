@@ -119,7 +119,7 @@ func Apply(plan Plan) error {
 	if plan.HasChange() {
 		log.Printf("writing to %s", plan.KustomizationManifest.Path)
 		plan.KustomizationManifest.Kustomization.Resources = plan.Resources
-		plan.KustomizationManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge
+		plan.KustomizationManifest.Kustomization.PatchesStrategicMerge = plan.PatchesStrategicMerge //nolint:staticcheck
 		if err := kustomization.Write(plan.KustomizationManifest.Path, plan.KustomizationManifest.Kustomization); err != nil {
 			return fmt.Errorf("could not update kustomization.yaml: %w", err)
 		}
