@@ -1,4 +1,4 @@
-# kustomtree ![build](https://github.com/int128/kustomtree/workflows/build/badge.svg)
+# kustomtree [![go](https://github.com/int128/kustomtree/actions/workflows/go.yaml/badge.svg)](https://github.com/int128/kustomtree/actions/workflows/go.yaml)
 
 This is a command line tool for refactoring of [Kustomize](https://github.com/kubernetes-sigs/kustomize) manifests.
 
