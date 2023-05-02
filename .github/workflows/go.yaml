@@ -1,0 +1,47 @@
+name: go
+
+on:
+  push:
+    paths:
+      - .github/workflows/build.yaml
+      - pkg/**
+      - integration_test/**
+      - go.*
+      - Makefile
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.3
+      - uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.52.2
+          args: --timeout=3m
+
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.3
+      - run: go mod tidy
+      - run: go fmt ./...
+      - uses: int128/update-generated-files-action@v2
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.3
+      - run: make test
+      - run: make -C integration_test
