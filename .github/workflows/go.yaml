@@ -3,7 +3,7 @@ name: go
 on:
   pull_request:
     paths:
-      - .github/workflows/build.yaml
+      - .github/workflows/go.yaml
       - pkg/**
       - integration_test/**
       - go.*
@@ -12,7 +12,7 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/build.yaml
+      - .github/workflows/go.yaml
       - pkg/**
       - integration_test/**
       - go.*
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: 1.20.3
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: 1.20.3
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: 1.20.3
