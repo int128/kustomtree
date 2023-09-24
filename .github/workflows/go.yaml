@@ -30,7 +30,7 @@ jobs:
           cache: false
       - uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.52.2
+          version: v1.54.2
           args: --timeout=3m
 
   generate:
