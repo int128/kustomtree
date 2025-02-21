@@ -5,7 +5,7 @@ go 1.22.7
 toolchain go1.24.0
 
 require (
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/kustomize/api v0.19.0
 )
