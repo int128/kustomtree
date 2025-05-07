@@ -2,7 +2,7 @@ module github.com/int128/kustomtree
 
 go 1.22.7
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	github.com/google/go-cmp v0.7.0
